@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.hackathon.Events.forms.BlogForm;
@@ -21,6 +22,7 @@ import com.hackathon.Events.models.Blog;
 import com.hackathon.Events.models.UserDetails;
 import com.hackathon.Events.repositories.BlogRepository;
 import com.hackathon.Events.repositories.UserRepository;
+import com.hackathon.Events.services.MainService;
 import com.hackathon.Events.utilities.Constants;
 import com.hackathon.Events.utilities.Security;
 import com.hackathon.Events.utilities.Validator;
@@ -37,13 +39,21 @@ public class MainController {
 
 	@Autowired
 	BlogRepository blogRepository;
+	
+	@Autowired
+	MainService mainService;
 
 	@GetMapping("/")
-	public ModelAndView home(HttpServletRequest req) {
+	public ModelAndView home(HttpServletRequest req, @RequestParam(name="s", required=false) String s) {
 		ModelAndView model = new ModelAndView("home");
-		HttpSession s = req.getSession(false);
-		UserDetails l = (UserDetails) s.getAttribute("userForm");
-		model.addObject("list", blogRepository.findByUserDetailsAndStatus(l, Constants.YES));
+		HttpSession ses = req.getSession(false);
+		UserDetails l = (UserDetails) ses.getAttribute("userForm");
+		if(s==null && s.isEmpty()) {
+			model.addObject("list", blogRepository.findByUserDetailsAndStatus(l, Constants.YES));
+		}
+		else {
+			model.addObject(s, mainService.search(s));
+		}
 		return model;
 	}
 

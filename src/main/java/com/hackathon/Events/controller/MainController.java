@@ -23,6 +23,7 @@ import com.hackathon.Events.models.UserDetails;
 import com.hackathon.Events.repositories.BlogRepository;
 import com.hackathon.Events.repositories.UserRepository;
 import com.hackathon.Events.services.MainService;
+import com.hackathon.Events.utilities.Common;
 import com.hackathon.Events.utilities.Constants;
 import com.hackathon.Events.utilities.Security;
 import com.hackathon.Events.utilities.Validator;
@@ -48,11 +49,24 @@ public class MainController {
 		ModelAndView model = new ModelAndView("home");
 		HttpSession ses = req.getSession(false);
 		UserDetails l = (UserDetails) ses.getAttribute("userForm");
-		if(s==null && s.isEmpty()) {
+		if(s==null || s.isBlank()) {
 			model.addObject("list", blogRepository.findByUserDetailsAndStatus(l, Constants.YES));
 		}
 		else {
-			model.addObject(s, mainService.search(s));
+			model.addObject("list", mainService.searchByUser(s, l.getUserId().toString()));
+		}
+		return model;
+	}
+	
+	
+	@GetMapping("/viewBlogs")
+	public ModelAndView view(@RequestParam(name="s", required=false) String s) {
+		ModelAndView model = new ModelAndView();
+		if(s==null || s.isBlank()) {
+			model.addObject("list", blogRepository.findByStatus(Constants.YES));
+		}
+		else {
+			model.addObject("list", mainService.search(s));
 		}
 		return model;
 	}
@@ -91,7 +105,7 @@ public class MainController {
 				b1.setUrl(blogForm.getUrl());
 				if (blogForm.getScheduleFlag()!=null && blogForm.getScheduleFlag()) {
 					b1.setStatus(Constants.NO);
-					b1.setScheduledAt(new Timestamp(format(blogForm.getScheduleAt()).getTime()));
+					b1.setScheduledAt(new Timestamp(Common.formatSch(blogForm.getScheduleAt()).getTime()));
 				} else {
 					b1.setStatus(Constants.YES);
 				}
@@ -124,7 +138,7 @@ public class MainController {
 				b.setUserDetails((UserDetails) s.getAttribute("userForm"));
 				if (blogForm.getScheduleFlag()!=null && blogForm.getScheduleFlag()) {
 					b.setStatus(Constants.NO);
-					b.setScheduledAt(new Timestamp(format(blogForm.getScheduleAt()).getTime()));
+					b.setScheduledAt(new Timestamp(Common.formatSch(blogForm.getScheduleAt()).getTime()));
 				} else {
 					b.setStatus(Constants.YES);
 				}
@@ -207,22 +221,25 @@ public class MainController {
 		return "loginPage";
 	}
 
-	@PostMapping("/logout")
-	public String logout(HttpSession s) {
+	@GetMapping("/logout")
+	public ModelAndView logout(HttpSession s) {
+		ModelAndView model = new ModelAndView("redirect:/loginPage");
 		if (s != null) {
 			s.invalidate();
 		}
-		return "redirect:/loginPage";
+		model.addObject("msg", "Logut Successfull");
+		return model;
 	}
 
 	@GetMapping("/timeout")
 	public String timeout() {
-		return "/timeout";
+		return "timeout";
 	}
-
-	public Date format(String s) throws ParseException {
-		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
-		return f.parse(s);
+	
+	
+	@GetMapping("/error")
+	public String error() {
+		return "error";
 	}
 
 }

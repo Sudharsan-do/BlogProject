@@ -21,9 +21,27 @@ public class MainService {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-	public List<Blog> search(String content) {
-		String query = "SELECT * FROM blog WHERE content like ? OR soundex(content) = soundex(?) OR\r\n"
-				+ "MATCH(content, name) AGAINST(? IN NATURAL language mode); AND STATUS=?";
+	public List<Blog> searchByUser(String content, String userId) {
+		String query = "SELECT * FROM blog WHERE content like ? OR soundex(content) = soundex(?) OR "
+				+ "MATCH(content, name) AGAINST(? IN NATURAL language mode) AND STATUS=? AND USER_ID=?;";
+		List<Blog> l = jdbcTemplate.query(query, new PreparedStatementSetter() {
+			@Override
+			public void setValues(PreparedStatement ps) throws SQLException {
+				// TODO Auto-generated method stub
+				ps.setString(1, "%"+content+"%");
+				for(int i=2;i<=3;i++) {
+					ps.setString(i, content);
+				}
+				ps.setString(4, Constants.YES);
+				ps.setString(5, userId);
+			}
+		}, new BlogMapper());
+		return l;
+	}
+	
+	public List<Blog> search(String content){
+		String query = "SELECT * FROM blog WHERE content like ? OR soundex(content) = soundex(?) OR "
+				+ "MATCH(content, name) AGAINST(? IN NATURAL language mode) AND STATUS=?;";
 		List<Blog> l = jdbcTemplate.query(query, new PreparedStatementSetter() {
 			@Override
 			public void setValues(PreparedStatement ps) throws SQLException {

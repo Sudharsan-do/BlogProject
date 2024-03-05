@@ -1,5 +1,6 @@
 package com.hackathon.Events.utilities;
 
+import java.util.Date;
 import java.util.regex.Pattern;
 
 import com.hackathon.Events.forms.BlogForm;
@@ -30,8 +31,30 @@ public class Validator {
 	}
 	
 	public static boolean validate(BlogForm b) {
-		if(b.getName() == null || !b.getName().matches("[A-Za-z0-9]+")) {
+		if(b.getName() == null || !b.getName().matches("[A-Za-z ]+")) {
 			msg = "invalid name";
+		}
+		else if(b.getContent() == null || b.getContent().isBlank()) {
+			msg = "Invalid Content";
+		}
+		else if(b.getScheduleFlag()!=null && b.getScheduleFlag()) {
+			if(b.getScheduleAt() == null) {
+				msg = "Invalid Scheduled At Time";
+				return false;
+			}
+			try {
+				Date d = Common.formatSch(b.getScheduleAt());
+				if(d.getTime() < System.currentTimeMillis()) {
+					msg = "Upload DateTime should not be before current time";
+					return false;
+				}
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+				msg = "Invalid Date Format";
+				return false;
+			}
+			return true;
 		}
 		else {
 			return true;

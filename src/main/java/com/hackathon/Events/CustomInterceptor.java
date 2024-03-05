@@ -13,7 +13,8 @@ public class CustomInterceptor implements HandlerInterceptor {
 			"/loginPage",
 			"/logout",
 			"/timeout",
-			"/login"
+			"/login",
+			"/viewBlogs"
 	};
 
 	@Override
